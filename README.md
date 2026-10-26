@@ -39,5 +39,5 @@ de `strategy.*` de v8. El bot implementa el núcleo v2 completo + los módulos c
 (kernel KDE, ADX, flow, squeeze, EMA200, divergencia RSI, estructura BOS/CHoCH, barrido día anterior/N velas,
 parcial/BE/trailing). Si pegas el resto del script, lo completo.
 
-## Tests
-`pip install -r requirements-dev.txt && pytest -q`
+## Estructura
+Todos los archivos van en la raíz del repo (sin carpetas): `main.py`, `strategy.py`, `indicators.py`, `bingx.py`, `config.py`, `risk.py`, `state.py`, `telegram.py`, `Procfile`, `requirements.txt`, `.python-version`, `.gitignore`.
