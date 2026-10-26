@@ -1,1 +1,1 @@
-worker: python -m lce_bot.main
+worker: python main.py

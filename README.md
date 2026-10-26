@@ -14,7 +14,7 @@ Escanea cada vela cerrada de 5m, envía la señal a Telegram y, según `TRADE_MO
 ## Despliegue
 1. Sube este repo a GitHub.
 2. Telegram: crea el bot con @BotFather (token) y obtén tu `chat_id` (escríbele al bot y abre `https://api.telegram.org/bot<TOKEN>/getUpdates`).
-3. Railway → New Project → Deploy from GitHub repo. Railway usa el `Procfile` (`worker: python -m lce_bot.main`).
+3. Railway → New Project → Deploy from GitHub repo. Railway usa el `Procfile` (`worker: python main.py`).
    **No definas `startCommand` en railway.toml** (choca con el Procfile y provoca crash-loop).
 4. **Añade un Volume montado en `/data`** (si no, se pierde el estado en cada redeploy).
 5. Pega las variables de `RAILWAY_VARIABLES.env`.
