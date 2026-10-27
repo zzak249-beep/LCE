@@ -115,9 +115,11 @@ class BingX:
         d = self._request("GET", "/openApi/swap/v2/quote/ticker") or []
         return d if isinstance(d, list) else [d]
 
-    def klines(self, symbol, interval, limit=1000):
-        data = self._request("GET", "/openApi/swap/v3/quote/klines",
-                             {"symbol": symbol, "interval": interval, "limit": limit}) or []
+    def klines(self, symbol, interval, limit=1000, end_time=None):
+        params = {"symbol": symbol, "interval": interval, "limit": limit}
+        if end_time:
+            params["endTime"] = int(end_time)
+        data = self._request("GET", "/openApi/swap/v3/quote/klines", params) or []
         rows = {}
         for k in data:
             if isinstance(k, dict):

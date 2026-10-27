@@ -20,6 +20,13 @@ Escanea cada vela cerrada de 5m, envía la señal a Telegram y, según `TRADE_MO
 5. Pega las variables de `RAILWAY_VARIABLES.env`.
 6. Secuencia recomendada: `signals` (días) → `demo` → `live` con `RISK_PCT` bajo.
 
+## Dinero real (live): cerrojos obligatorios
+El bot **se niega a arrancar en `live`** si falta alguna de estas condiciones:
+`CONFIRM_LIVE=SI_ENTIENDO_EL_RIESGO`, Telegram configurado, Volume en `/data`, `MAX_DAY_LOSS > 0`,
+`RISK_PCT <= 2`, `MAX_LEV <= 10`, equity > 0 y cuenta en modo hedge.
+Si no puede fijar el apalancamiento no abre la operación. `KILL_SWITCH=true` bloquea nuevas entradas sin tocar las abiertas.
+Perfil conservador listo en `RAILWAY_VARIABLES_LIVE.env`.
+
 ## API key de BingX
 Permisos: **lectura + trading de futuros. Sin retiros.** Cuenta en **modo hedge** (el bot lo comprueba al arrancar).
 
@@ -39,5 +46,13 @@ de `strategy.*` de v8. El bot implementa el núcleo v2 completo + los módulos c
 (kernel KDE, ADX, flow, squeeze, EMA200, divergencia RSI, estructura BOS/CHoCH, barrido día anterior/N velas,
 parcial/BE/trailing). Si pegas el resto del script, lo completo.
 
+## Backtest (hazlo ANTES de operar)
+`python backtest.py --top 20 --days 60` (o `--symbols BTC-USDT,ETH-USDT`). Usa la misma estrategia y tu configuración,
+con comisiones y slippage (`--slip`). Muestra acierto, R medio, profit factor, retorno compuesto y drawdown.
+Corre en tu PC o en la consola de Railway; no necesita claves. Menos de ~100 operaciones = muestra insuficiente.
+
+## Tests
+`pip install -r requirements-dev.txt && pytest -q`  (20 tests: firma, tamaño, riesgo, cerrojos live, indicadores, backtest)
+
 ## Estructura
-Todos los archivos van en la raíz del repo (sin carpetas): `main.py`, `strategy.py`, `indicators.py`, `bingx.py`, `config.py`, `risk.py`, `state.py`, `telegram.py`, `Procfile`, `requirements.txt`, `.python-version`, `.gitignore`.
+Todos los archivos van en la raíz del repo (sin carpetas): `main.py`, `strategy.py`, `indicators.py`, `bingx.py`, `config.py`, `risk.py`, `state.py`, `telegram.py`, `backtest.py`, `test_lce.py`, `Procfile`, `requirements.txt`, `.python-version`, `.gitignore`.

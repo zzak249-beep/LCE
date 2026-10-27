@@ -65,13 +65,30 @@ class Bot:
             miss = c.missing_for_trading()
             if miss:
                 raise SystemExit(f"Faltan variables para operar: {', '.join(miss)}")
-            self.bx.balance()                         # valida credenciales ya
+            if c.mode == "live":
+                probs = c.live_problems()
+                if not self.state.persistent:
+                    probs.append("sin Volume en /data: el estado se perderia al redeploy")
+                if probs:
+                    msg = "Live bloqueado: " + "; ".join(probs)
+                    self.tg.send("⛔ " + esc(msg))
+                    raise SystemExit(msg)
+            bal0 = self.bx.balance()                  # valida credenciales ya
+            if c.mode == "live" and bal0["equity"] <= 0:
+                raise SystemExit("Live bloqueado: equity 0 en BingX (cuenta de futuros sin fondos)")
             try:
                 if not self.bx.position_mode():
                     log.warning("Cuenta en modo one-way: activo hedge (requiere sin posiciones abiertas)")
                     self.bx.set_position_mode(True)
             except BingXError as e:
                 log.error("No pude fijar modo hedge: %s", e)
+            if c.mode == "live":
+                try:
+                    hedge_ok = self.bx.position_mode()
+                except BingXError:
+                    hedge_ok = False
+                if not hedge_ok:
+                    raise SystemExit("Live bloqueado: la cuenta no esta en modo hedge (cierra posiciones y activalo en BingX)")
             self.reconcile()
         self.refresh_universe(force=True)
         self.tg.send(
@@ -264,6 +281,9 @@ class Bot:
         inf = self.info.get(sym)
         if inf is None:
             return
+        if c.kill_switch:
+            self.tg.send(f"ℹ️ {esc(sym)} no ejecutada: KILL_SWITCH activo")
+            return
         if sym in self.trades:
             log.info("%s ya tiene operacion abierta", sym)
             return
@@ -300,11 +320,16 @@ class Bot:
 
         # apalancamiento en AMBOS lados (hedge) y margen aislado, una vez por simbolo
         if sym not in self._lev_done:
+            lev_ok = 0
             for s in ("LONG", "SHORT"):
                 try:
                     self.bx.set_leverage(sym, s, c.leverage)
+                    lev_ok += 1
                 except BingXError as e:
                     log.warning("leverage %s %s: %s", sym, s, e)
+            if lev_ok == 0 and c.mode == "live":
+                self.tg.send(f"⛔ {esc(sym)} no ejecutada: no pude fijar el apalancamiento {c.leverage}x")
+                return
             self._lev_done.add(sym)
         if sym not in self._mt_done:
             try:

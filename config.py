@@ -77,6 +77,8 @@ class Config:
         self.heartbeat_hours = _f("HEARTBEAT_HOURS", 6.0)
         self.state_dir = _s("STATE_DIR", "/data")
         self.log_level = _s("LOG_LEVEL", "INFO").upper()
+        self.confirm_live = _s("CONFIRM_LIVE", "")      # debe ser SI_ENTIENDO_EL_RIESGO para operar en live
+        self.kill_switch = _b("KILL_SWITCH", False)     # true = no abre operaciones nuevas (gestiona las abiertas)
         self.min_live_rr = _f("MIN_LIVE_RR", 1.0)     # R:R minimo con el precio real al entrar
 
         # ---------------- Zonas ----------------
@@ -173,6 +175,23 @@ class Config:
         self.cost_mult = _f("COST_MULT", 0.0)
         self.use_session = _b("USE_SESSION", False)
         self.session_utc = _s("SESSION_UTC", "0900-1730")
+
+    LIVE_PHRASE = "SI_ENTIENDO_EL_RIESGO"
+
+    def live_problems(self):
+        """Condiciones obligatorias para operar con dinero real."""
+        p = []
+        if self.confirm_live != self.LIVE_PHRASE:
+            p.append(f"falta CONFIRM_LIVE={self.LIVE_PHRASE}")
+        if not (self.tg_token and self.tg_chat):
+            p.append("Telegram sin configurar (TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID)")
+        if self.risk_pct > 2.0:
+            p.append(f"RISK_PCT={self.risk_pct} es demasiado alto para live (maximo 2)")
+        if self.max_lev > 10:
+            p.append(f"MAX_LEV={self.max_lev} es demasiado alto para live (maximo 10)")
+        if self.max_day_loss <= 0:
+            p.append("MAX_DAY_LOSS debe ser > 0 en live (limite de perdida diaria)")
+        return p
 
     def missing_for_trading(self):
         miss = []
